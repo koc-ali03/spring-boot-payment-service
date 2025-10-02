@@ -1,0 +1,31 @@
+package cc.aliko.payment_service.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class AppConfig {
+
+    @Value("${app.return-url}")
+    private String defaultReturnUrl;
+
+    @Value("${app.cancel-url}")
+    private String defaultCancelUrl;
+
+    @Bean
+    public String defaultReturnUrl() {
+        return defaultReturnUrl;
+    }
+
+    @Bean
+    public String defaultCancelUrl() {
+        return defaultCancelUrl;
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
