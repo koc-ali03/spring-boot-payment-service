@@ -34,7 +34,6 @@ public class TokenManagerImpl implements TokenManager {
                 expiresAt = Instant.parse(exp.replace(" ", "T"));
             }
             catch (Exception e) {
-                System.err.println("Token tükenme süresi ayıklanamadı (" + exp + "), varsayılan 1 saat ayarlanıyor");
                 expiresAt = Instant.now().plusSeconds(3600);
             }
 
