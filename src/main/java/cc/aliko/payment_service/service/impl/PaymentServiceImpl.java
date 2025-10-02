@@ -3,10 +3,14 @@ package cc.aliko.payment_service.service.impl;
 import cc.aliko.payment_service.config.SipayProperties;
 import cc.aliko.payment_service.dto.DirectPaymentRequest;
 import cc.aliko.payment_service.exception.PaymentProcessingException;
+import cc.aliko.payment_service.repository.TransactionRepository;
+import cc.aliko.payment_service.entity.Transaction;
 import cc.aliko.payment_service.service.PaymentService;
 import cc.aliko.payment_service.service.TokenManager;
 import cc.aliko.payment_service.util.HashUtil;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -22,6 +26,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final TokenManager tokenManager;
     private final String defaultReturnUrl;
     private final String defaultCancelUrl;
+    private final TransactionRepository transactionRepository;
 
     @Override
     public String directPayment(DirectPaymentRequest request) {
@@ -76,7 +81,22 @@ public class PaymentServiceImpl implements PaymentService {
         String url = sipayProperties.getBaseUrl() + "/api/paySmart3D";
 
         try {
+                //Form verilerini gönder
                 ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+                // Veritabanına kaydet
+                Transaction tx = new Transaction();
+                tx.setInvoiceId(request.getInvoice_id());
+                tx.setCardHolder(request.getCc_holder_name());
+                tx.setCardMasked(request.getCc_no().replaceAll(".(?=.{4})", "*"));
+                tx.setCurrency(request.getCurrency_code());
+                tx.setAmount(request.getTotal());
+                tx.setStatus("INITIATED");
+                tx.setResponseMessage("Transaction sent to Sipay, awaiting 3D Secure result");
+
+                transactionRepository.save(tx);
+
+                // HTML döndür
                 return response.getBody();
         }
         catch (Exception e) {
