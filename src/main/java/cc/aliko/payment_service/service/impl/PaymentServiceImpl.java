@@ -4,8 +4,11 @@ import cc.aliko.payment_service.config.SipayProperties;
 import cc.aliko.payment_service.dto.DirectPaymentRequest;
 import cc.aliko.payment_service.exception.PaymentProcessingException;
 import cc.aliko.payment_service.repository.TransactionRepository;
+import cc.aliko.payment_service.repository.UserRepository;
+import cc.aliko.payment_service.entity.User;
 import cc.aliko.payment_service.entity.Transaction;
 import cc.aliko.payment_service.service.PaymentService;
+import cc.aliko.payment_service.service.AuthService;
 import cc.aliko.payment_service.service.TokenManager;
 import cc.aliko.payment_service.util.HashUtil;
 
@@ -27,9 +30,16 @@ public class PaymentServiceImpl implements PaymentService {
     private final String defaultReturnUrl;
     private final String defaultCancelUrl;
     private final TransactionRepository transactionRepository;
+    private final AuthService authService;
+    private final UserRepository userRepository;
 
     @Override
-    public String directPayment(DirectPaymentRequest request) {
+    public String directPayment(DirectPaymentRequest request, String userToken) {
+        // Login işlemlerini doğrula
+        Long userId = authService.getUserIdByToken(userToken);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+        
         // Önce token elde et
         String token = tokenManager.getToken();
 
@@ -86,6 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                 // Veritabanına kaydet
                 Transaction tx = new Transaction();
+                tx.setUser(user);
                 tx.setInvoiceId(request.getInvoice_id());
                 tx.setCardHolder(request.getCc_holder_name());
                 tx.setCardMasked(request.getCc_no().replaceAll(".(?=.{4})", "*"));

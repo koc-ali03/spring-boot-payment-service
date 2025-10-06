@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
 @Data
 public class Transaction {
 
+    @ManyToOne // Bir kullanıcının birçok işlemi olabilir
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
