@@ -22,8 +22,10 @@ public class PaymentController {
     private final TransactionRepository transactionRepository;
 
     @PostMapping(value = "/directPayment", produces = MediaType.TEXT_HTML_VALUE) // Ödeme yapma sayfasına istek
-    public ResponseEntity<String> directPayment(@RequestBody DirectPaymentRequest request) {
-        String html = paymentService.directPayment(request);
+    public ResponseEntity<String> directPayment(
+            @RequestBody DirectPaymentRequest request,
+            @RequestHeader("Authorization") String userToken) {
+        String html = paymentService.directPayment(request, userToken);
         return ResponseEntity.ok(html);
     }
 
